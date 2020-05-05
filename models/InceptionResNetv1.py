@@ -8,14 +8,13 @@ Created on Mon Jan 20 15:56:01 2020
 
 import torch
 import torch.nn as nn
-from Layers import Concat_Separable_Conv2d, Separable_Conv2d, Conv2d, Squeeze
+from .Layers import Concat_Separable_Conv2d, Separable_Conv2d, Conv2d, Squeeze
 from functools import partial
 
-class GoogLeNetv4(nn.Module):
-    def __init__(self, num_classes, mode='train'):
-        super(GoogLeNetv4, self).__init__()
+class Inception_ResNet_v1(nn.Module):
+    def __init__(self, num_classes):
+        super(Inception_ResNet_v1, self).__init__()
         self.num_classes = num_classes
-        self.mode = mode     
         self.layers = nn.Sequential(
             Inceptionv4_stem(),
             
@@ -149,7 +148,7 @@ class Inception_ResNet_C(nn.Module):
 
     def forward(self, x):
         x1 = self.conv1(x)
-        x2 = self.conv7(x)
+        x2 = self.conv3(x)
         x_concat = torch.cat([x1, x2], dim=1)
         outputs = self.conv1_concat(x_concat) + x
         return outputs
@@ -179,7 +178,7 @@ class Inception_ResNet_Reduction_B(nn.Module):
                  conv3_double_channel_1, conv3_double_channel_2):
         super(Inception_ResNet_Reduction_B, self).__init__()
 
-        self.pool = nn.MAxPool2d(kernel_size=3, stride=2)
+        self.pool = nn.MaxPool2d(kernel_size=3, stride=2)
 
         self.conv3_1 = nn.Sequential(Conv2d(input_channel, conv3_reduce_channel, kernel_size=1),
                                      Conv2d(conv3_reduce_channel, conv3_channel_1, kernel_size=3, stride=2))

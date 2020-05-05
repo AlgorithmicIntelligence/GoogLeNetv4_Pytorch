@@ -11,38 +11,43 @@ import torch.nn as nn
 from .Layers import Concat_Separable_Conv2d, Separable_Conv2d, Conv2d, Squeeze
 from functools import partial
 
-class GoogLeNetv4(nn.Module):
-    def __init__(self, num_classes, mode='train'):
-        super(GoogLeNetv4, self).__init__()
+class Inception_ResNet_v2(nn.Module):
+    def __init__(self, num_classes):
+        super(Inception_ResNet_v2, self).__init__()
         self.num_classes = num_classes
-        self.mode = mode     
         self.layers = nn.Sequential(
-            Inceptionv4_stem(),
+            Inception_ResNet_stem(),
             
-            Inceptionv4_A(384, 96, 96, 64, 96, 64, 96, 96),
-            Inceptionv4_A(384, 96, 96, 64, 96, 64, 96, 96),
-            Inceptionv4_A(384, 96, 96, 64, 96, 64, 96, 96),
-            Inceptionv4_A(384, 96, 96, 64, 96, 64, 96, 96),
+            Inception_ResNet_A(384, 32, 32, 32, 32, 48, 64, 384),
+            Inception_ResNet_A(384, 32, 32, 32, 32, 48, 64, 384),
+            Inception_ResNet_A(384, 32, 32, 32, 32, 48, 64, 384),
+            Inception_ResNet_A(384, 32, 32, 32, 32, 48, 64, 384),
+            Inception_ResNet_A(384, 32, 32, 32, 32, 48, 64, 384),
             
-            Inceptionv4_reduction_A(384, 384, 192, 224, 256),
-            
-            Inceptionv4_B(1024, 128, 384, 192, 224, 256, 192, 224, 256),
-            Inceptionv4_B(1024, 128, 384, 192, 224, 256, 192, 224, 256),
-            Inceptionv4_B(1024, 128, 384, 192, 224, 256, 192, 224, 256),
-            Inceptionv4_B(1024, 128, 384, 192, 224, 256, 192, 224, 256),
-            Inceptionv4_B(1024, 128, 384, 192, 224, 256, 192, 224, 256),
-            Inceptionv4_B(1024, 128, 384, 192, 224, 256, 192, 224, 256),
-            Inceptionv4_B(1024, 128, 384, 192, 224, 256, 192, 224, 256),
-        
-            Inceptionv4_reduction_B(1024, 192, 256, 320),    
-            
-            Inceptionv4_C(1536, 256, 256, 384, 256, 384, 448, 512, 256),
-            Inceptionv4_C(1536, 256, 256, 384, 256, 384, 448, 512, 256),
-            Inceptionv4_C(1536, 256, 256, 384, 256, 384, 448, 512, 256),
+            Inception_ResNet_Reduction_A(384, 384, 256, 256, 384),
+
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+            Inception_ResNet_B(1152, 192, 128, 160, 192, 1152),
+
+            Inception_ResNet_Reduction_B(1152, 256, 384, 256, 256, 256, 256),
+
+            Inception_ResNet_C(2048, 192, 192, 224, 256, 2048),
+            Inception_ResNet_C(2048, 192, 192, 224, 256, 2048),
+            Inception_ResNet_C(2048, 192, 192, 224, 256, 2048),
+            Inception_ResNet_C(2048, 192, 192, 224, 256, 2048),
+            Inception_ResNet_C(2048, 192, 192, 224, 256, 2048),
             
             nn.AvgPool2d(8, 1),
             nn.Dropout2d(0.2, inplace=True),
-            Conv2d(1536, num_classes, kernel_size=1, output=True),
+            Conv2d(2048, num_classes, kernel_size=1, output=True),
             Squeeze()
         ) 
 
@@ -66,9 +71,9 @@ class GoogLeNetv4(nn.Module):
                 m.bias.data.fill_(0)    
         _ = self.apply(partial(init_function, init_mode=init_mode))
 
-class Inceptionv4_stem(nn.Module):
+class Inception_ResNet_stem(nn.Module):
     def __init__(self):
-        super(Inceptionv4_stem, self).__init__()
+        super(Inception_ResNet_stem, self).__init__()
         self.stem1 = nn.Sequential(
             Conv2d(3, 32, 3, stride=2),
             Conv2d(32, 32, 3, stride=1),
@@ -101,88 +106,76 @@ class Inceptionv4_stem(nn.Module):
         x = torch.cat([x1, x2], dim=1)
         return x
 
-class Inceptionv4_A(nn.Module):
-    def __init__(self, input_channel, pool_reduce_channel, conv1_channel, conv3_reduce_channel,
-                 conv3_channel, conv3_double_reduce_channel, conv3_double_channel_1, conv3_double_channel_2):
-
-        super(Inceptionv4_A, self).__init__()
-
-        self.pool = nn.Sequential(nn.AvgPool2d(kernel_size=3, stride=1, padding=1),
-                                  Conv2d(input_channel, pool_reduce_channel, kernel_size=1))
+class Inception_ResNet_A(nn.Module):
+    def __init__(self, input_channel, conv1_channel, conv3_reduce_channel,
+                 conv3_channel, conv3_double_reduce_channel, conv3_double_channel_1, conv3_double_channel_2,
+                 conv1_concat_channel):
+        super(Inception_ResNet_A, self).__init__()
         
         self.conv1 = Conv2d(input_channel, conv1_channel, kernel_size=1)
-        
+
         self.conv3 = nn.Sequential(Conv2d(input_channel, conv3_reduce_channel, kernel_size=1),
                                    Conv2d(conv3_reduce_channel, conv3_channel, kernel_size=3, padding=1))
 
         self.conv3_double = nn.Sequential(Conv2d(input_channel, conv3_double_reduce_channel, kernel_size=1),
                                           Conv2d(conv3_double_reduce_channel, conv3_double_channel_1, kernel_size=3, padding=1),
                                           Conv2d(conv3_double_channel_1, conv3_double_channel_2, kernel_size=3, padding=1))
-    
+
+        self.conv1_concat = Conv2d(conv1_channel + conv3_channel + conv3_double_channel_2, conv1_concat_channel, 1, output=True)
+
     def forward(self, x):
         x1 = self.conv1(x)
         x2 = self.conv3(x)
         x3 = self.conv3_double(x)
-        x4 = self.pool(x)
-        outputs = torch.cat([x1, x2, x3, x4], dim=1)
+        x_concat = torch.cat([x1, x2, x3], dim=1)
+        outputs = self.conv1_concat(x_concat) + x
         return outputs  
 
-class Inceptionv4_B(nn.Module):
-    def __init__(self, input_channel, pool_reduce_channel, conv1_channel, conv7_reduce_channel,
-                 conv7_channel_1, conv7_channel_2, conv7_double_reduce_channel, conv7_double_channel_1, conv7_double_channel_2):
+class Inception_ResNet_B(nn.Module):
+    def __init__(self, input_channel, conv1_channel, conv7_reduce_channel, conv7_channel_1, conv7_channel_2,
+                 conv1_concat_channel):
 
-        super(Inceptionv4_B, self).__init__()
+        super(Inception_ResNet_B, self).__init__()
 
         self.conv1 = Conv2d(input_channel, conv1_channel, kernel_size=1)
-        
+
         self.conv7 = nn.Sequential(Conv2d(input_channel, conv7_reduce_channel, kernel_size=1),
                                    Separable_Conv2d(conv7_reduce_channel, conv7_channel_1, conv7_channel_2, kernel_size=7, padding=3))
 
-        self.conv7_double = nn.Sequential(Conv2d(input_channel, conv7_double_reduce_channel, kernel_size=1),
-                                          Separable_Conv2d(conv7_double_reduce_channel, conv7_double_reduce_channel, conv7_double_channel_1, kernel_size=7, padding=3),
-                                          Separable_Conv2d(conv7_double_channel_1, conv7_double_channel_1, conv7_double_channel_2, kernel_size=7, padding=3))
-        
-        self.pool = nn.Sequential(nn.AvgPool2d(kernel_size=3, stride=1, padding=1),
-                                  Conv2d(input_channel, pool_reduce_channel, kernel_size=1))
-    
+        self.conv1_concat = Conv2d(conv1_channel + conv7_channel_2, conv1_concat_channel, 1, output=True)
+
     def forward(self, x):
-        
         x1 = self.conv1(x)
         x2 = self.conv7(x)
-        x3 = self.conv7_double(x)
-        x4 = self.pool(x)
-        outputs = torch.cat([x1, x2, x3, x4], dim=1)
-        return outputs  
-  
-class Inceptionv4_C(nn.Module):
-    def __init__(self, input_channel, pool_reduce_channel, conv1_channel, conv3_reduce_channel,
-                 conv3_channel, conv3_double_reduce_channel, conv3_double_channel_1_1, conv3_double_channel_1_2, conv3_double_channel_2):
+        x_concat = torch.cat([x1, x2], dim=1)
+        outputs = self.conv1_concat(x_concat) + x
+        return outputs
 
-        super(Inceptionv4_C, self).__init__()
 
-        self.pool = nn.Sequential(nn.AvgPool2d(kernel_size=3, stride=1, padding=1),
-                                  Conv2d(input_channel, pool_reduce_channel, kernel_size=1))
-        
+class Inception_ResNet_C(nn.Module):
+    def __init__(self, input_channel, conv1_channel, conv3_reduce_channel,
+                 conv3_channel_1, conv3_channel_2, conv1_concat_channel):
+        super(Inception_ResNet_C, self).__init__()
+
         self.conv1 = Conv2d(input_channel, conv1_channel, kernel_size=1)
-        
-        self.conv3 = nn.Sequential(Conv2d(input_channel, conv3_reduce_channel, kernel_size=1),
-                                   Concat_Separable_Conv2d(conv3_reduce_channel, conv3_channel, kernel_size=3, padding=1))
 
-        self.conv3_double = nn.Sequential(Conv2d(input_channel, conv3_double_reduce_channel, kernel_size=1),
-                                          Separable_Conv2d(conv3_double_reduce_channel, conv3_double_channel_1_1, conv3_double_channel_1_2, kernel_size=3, padding=1),
-                                          Concat_Separable_Conv2d(conv3_double_channel_1_2, conv3_double_channel_2, kernel_size=3, padding=1))
-        
+        self.conv3 = nn.Sequential(Conv2d(input_channel, conv3_reduce_channel, kernel_size=1),
+                                   Separable_Conv2d(conv3_reduce_channel, conv3_channel_1, conv3_channel_2,
+                                                    kernel_size=3, padding=1))
+
+        self.conv1_concat = Conv2d(conv1_channel + conv3_channel_2, conv1_concat_channel, 1, output=True)
+
     def forward(self, x):
         x1 = self.conv1(x)
         x2 = self.conv3(x)
-        x3 = self.conv3_double(x)
-        x4 = self.pool(x)
-        outputs = torch.cat([x1, x2, x3, x4], dim=1)
-        return outputs      
+        
+        x_concat = torch.cat([x1, x2], dim=1)
+        outputs = self.conv1_concat(x_concat) + x
+        return outputs
   
-class Inceptionv4_reduction_A(nn.Module):
+class Inception_ResNet_Reduction_A(nn.Module):
     def __init__(self, input_channel, conv3_channel, conv3_double_reduce_channel, conv3_double_channel_1, conv3_double_channel_2):
-        super(Inceptionv4_reduction_A, self).__init__()
+        super(Inception_ResNet_Reduction_A, self).__init__()
         
         self.pool = nn.MaxPool2d(3, 2)
         self.conv3 = Conv2d(input_channel, conv3_channel, 3, 2) # n
@@ -198,25 +191,34 @@ class Inceptionv4_reduction_A(nn.Module):
         x3 = self.conv3_double(x)
         x = torch.cat([x1, x2, x3], dim=1)
         return x
-  
-class Inceptionv4_reduction_B(nn.Module):
-    def __init__(self, input_channel, conv3_channel, conv3_double_reduce_channel, conv3_double_channel):
-        super(Inceptionv4_reduction_B, self).__init__()
-        
-        self.pool = nn.MaxPool2d(3, 2)
-        self.conv3 = nn.Sequential(Conv2d(input_channel, conv3_channel, 1),
-                                   Conv2d(conv3_channel, conv3_channel, 3, 2))
-        self.conv3_double = nn.Sequential(Conv2d(input_channel, conv3_double_reduce_channel, 1),
-                                          Separable_Conv2d(conv3_double_reduce_channel, conv3_double_reduce_channel, conv3_double_channel, 7, padding=3),
-                                          Conv2d(conv3_double_channel, conv3_double_channel, 3, stride=2))
 
-    def forward(self, x):   
-        
+
+class Inception_ResNet_Reduction_B(nn.Module):
+    def __init__(self, input_channel, conv3_reduce_channel, conv3_channel_1, conv3_channel_2, conv3_double_reduce_channel,
+                 conv3_double_channel_1, conv3_double_channel_2):
+        super(Inception_ResNet_Reduction_B, self).__init__()
+
+        self.pool = nn.MaxPool2d(kernel_size=3, stride=2)
+
+        self.conv3_1 = nn.Sequential(Conv2d(input_channel, conv3_reduce_channel, kernel_size=1),
+                                     Conv2d(conv3_reduce_channel, conv3_channel_1, kernel_size=3, stride=2))
+
+        self.conv3_2 = nn.Sequential(Conv2d(input_channel, conv3_reduce_channel, kernel_size=1),
+                                     Conv2d(conv3_reduce_channel, conv3_channel_2, kernel_size=3, stride=2))
+
+        self.conv3_double = nn.Sequential(Conv2d(input_channel, conv3_double_reduce_channel, kernel_size=1),
+                                          Conv2d(conv3_double_reduce_channel, conv3_double_channel_1, kernel_size=3,
+                                                 padding=1),
+                                          Conv2d(conv3_double_channel_1, conv3_double_channel_2, kernel_size=3,
+                                                 stride=2))
+
+    def forward(self, x):
         x1 = self.pool(x)
-        x2 = self.conv3(x)
-        x3 = self.conv3_double(x)
-        x = torch.cat([x1, x2, x3], dim=1)
-        return x    
+        x2 = self.conv3_1(x)
+        x3 = self.conv3_2(x)
+        x4 = self.conv3_double(x)
+        outputs = torch.cat([x1, x2, x3, x4], dim=1)
+        return outputs
 
 if __name__ == '__main__':
     net = GoogLeNetv4(1000).cuda()

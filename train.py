@@ -7,9 +7,10 @@ Created on Mon Jan 20 15:56:01 2020
 """
 
 from data.DataLoader_ILSVRC import ILSVRC2012 as Dataset
-from models.GoogLeNetv4 import GoogLeNetv4 as GoogLeNet
+from models.InceptionResNetv2 import Inception_ResNet_v2
 
 import time, os
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 import torch
 import torch.nn as nn
 from torch import optim
@@ -18,8 +19,8 @@ import torch.optim.lr_scheduler as lr_scheduler
 import numpy as np
 import matplotlib.pyplot as plt
 
-train_dir = '/media/nickwang/StorageDisk/Dataset/ILSVRC2012/ILSVRC2012_img_train'
-val_dir = '/media/nickwang/StorageDisk/Dataset/ILSVRC2012/ILSVRC2012_img_val'
+train_dir = '/mnt/StorageDisk/ZIP/ILSVRC/ILSVRC2012_img_train'
+val_dir = '/mnt/StorageDisk/ZIP/ILSVRC/ILSVRC2012_img_val'
 dirname_to_classname_path = './data/dirname_to_classname'
 
 pretrained_weights = None
@@ -38,7 +39,7 @@ testset = Dataset(val_dir, dirname_to_classname_path, num_classes)
 train_dataloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size_train, shuffle=True, num_workers=8)
 test_dataloader = torch.utils.data.DataLoader(testset, batch_size=batch_size_train, shuffle=False, num_workers=8)
 
-net = GoogLeNet(num_classes, mode='train').cuda()
+net = Inception_ResNet_v2(num_classes).cuda()
 net.init_weights('KAMING')
 if pretrained_weights != None:
     net_pretrain = torch.load(pretrained_weights)
