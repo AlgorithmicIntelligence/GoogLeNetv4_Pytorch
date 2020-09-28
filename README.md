@@ -1,7 +1,15 @@
-Implement the code from the [Paper](https://arxiv.org/pdf/1502.03167.pdf), all the architecture and parameters are the same as paper, the only different thing is that I trained the model with only 100 classes, because 1000 classes might take too much time. 
+Implement the code from the [Paper](https://arxiv.org/pdf/1602.07261.pdf), all the architecture and parameters are the same as paper.
 
-The accuracy and loss are shown as below:
+The results are shown as below:
 
-<img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv2_Pytorch/blob/master/README/Accuracy.png" width="450"><img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv2_Pytorch/blob/master/README/Loss.png" width="450">
+Accuracy and loss of Inception_v4 with 100 classes in ILSVRC2012:
 
+<img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv4_Pytorch/blob/master/README/Accuracy_Inception_v4.png" width="450"><img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv4_Pytorch/blob/master/README/Loss_Inception_v4.png" width="450">
 
+Accuracy and loss of Inception_ResNet_v1 with 100 classes in ILSVRC2012:
+
+<img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv4_Pytorch/blob/master/README/Accuracy_Inception_ResNet_v1.png" width="450"><img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv4_Pytorch/blob/master/README/Loss_Inception_ResNet_v1.png" width="450">
+
+Accuracy and loss of Inception_ResNet_v2 with 1000 classes in ILSVRC2012:
+
+<img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv4_Pytorch/blob/master/README/Inception_ResNet_v2_Accuracy_numCls1000.png" width="450"><img src="https://github.com/AlgorithmicIntelligence/GoogLeNetv4_Pytorch/blob/master/README/Inception_ResNet_v2_Loss_numCls1000.png" width="450">

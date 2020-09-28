@@ -10,7 +10,7 @@ from data.DataLoader_ILSVRC import ILSVRC2012 as Dataset
 from models.InceptionResNetv2 import Inception_ResNet_v2
 
 import time, os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import torch
 import torch.nn as nn
 from torch import optim
@@ -19,8 +19,8 @@ import torch.optim.lr_scheduler as lr_scheduler
 import numpy as np
 import matplotlib.pyplot as plt
 
-train_dir = '/mnt/StorageDisk/ZIP/ILSVRC/ILSVRC2012_img_train'
-val_dir = '/mnt/StorageDisk/ZIP/ILSVRC/ILSVRC2012_img_val'
+train_dir = '/media/nickwang/StorageDisk/Dataset/ILSVRC2012/ILSVRC2012_img_train'
+val_dir = '/media/nickwang/StorageDisk/Dataset/ILSVRC2012/ILSVRC2012_img_val'
 dirname_to_classname_path = './data/dirname_to_classname'
 
 pretrained_weights = None

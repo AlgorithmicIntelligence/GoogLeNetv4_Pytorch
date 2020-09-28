@@ -8,7 +8,7 @@ Created on Mon Jan 20 15:56:01 2020
 
 import torch
 import torch.nn as nn
-from .Layers import Concat_Separable_Conv2d, Separable_Conv2d, Conv2d, Squeeze
+from Layers import Concat_Separable_Conv2d, Separable_Conv2d, Conv2d, Squeeze
 from functools import partial
 
 class GoogLeNetv4(nn.Module):
